@@ -1,8 +1,18 @@
 <script setup>
-    import { ref, onMounted } from 'vue'
+    import { ref, onMounted } from 'vue';
+    import Letter from './Letter.vue';
 
     const currentRow = ref(0)
     const currentCol = ref(0)
+
+    const rows = ref([
+        Array.from({ length: 5 }, () => ({ value: "", status: "empty" })),
+        Array.from({ length: 5 }, () => ({ value: "", status: "empty" })),
+        Array.from({ length: 5 }, () => ({ value: "", status: "empty" })),
+        Array.from({ length: 5 }, () => ({ value: "", status: "empty" })),
+        Array.from({ length: 5 }, () => ({ value: "", status: "empty" })),
+        Array.from({ length: 5 }, () => ({ value: "", status: "empty" }))
+    ])
 
     onMounted(() => {
         window.addEventListener('keydown', handleKey)
@@ -73,7 +83,7 @@
 <template>
     <div class="grid">
         <div v-for="(row, r) in rows" :key="r" class="row">
-            <Lettre
+            <Letter
                 v-for="(cell, c) in row"
                 :key="c"
                 :value="cell.value"
@@ -84,5 +94,15 @@
 </template>
 
 <style scoped>
-    
+.grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+
+.row {
+    display: flex;
+    gap: 8px;
+}
 </style>
