@@ -37,7 +37,7 @@
     }
 
     function checkWord() {
-        const secretWord = localStorage.getItem('secret')
+        const secretWord = localStorage.getItem('wordle-word')
 
         if (!secretWord) {
             console.error('Aucun mot secret trouvé dans le localStorage')
