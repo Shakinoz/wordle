@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Key from "./Key.vue";
 
-let keys = [
+const keys = [
     [
         { value: "A", status: "" },
         { value: "Z", status: "" },
