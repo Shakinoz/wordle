@@ -1,9 +1,12 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, onUnmounted } from "vue";
 import Letter from "./Letter.vue";
+
+const emit = defineEmits(["win", "lose"]);
 
 const currentRow = ref(0);
 const currentCol = ref(0);
+const gameOver = ref(false);
 
 const rows = ref([
     Array.from({ length: 5 }, () => ({ value: "", status: "empty" })),
@@ -18,7 +21,13 @@ onMounted(() => {
     window.addEventListener("keydown", handleKey);
 });
 
+onUnmounted(() => {
+    window.removeEventListener("keydown", handleKey);
+});
+
 function handleKey(e) {
+    if (gameOver.value) return;
+
     if (e.key.match(/^[a-zA-Z]$/)) {
         addLetter(e.key);
     }
@@ -91,9 +100,26 @@ function checkWord() {
         }
     });
 
+    // Vérifier victoire
+    const isWin = rows.value[currentRow.value].every(
+        (cell) => cell.status === "correct"
+    );
+
+    if (isWin) {
+        gameOver.value = true;
+        emit("win", currentRow.value + 1);
+        return;
+    }
+
     // Passage à la ligne suivante
     currentRow.value++;
     currentCol.value = 0;
+
+    // Vérifier défaite (6 essais épuisés)
+    if (currentRow.value === 6) {
+        gameOver.value = true;
+        emit("lose");
+    }
 }
 </script>
 
