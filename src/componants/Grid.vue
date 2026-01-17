@@ -2,7 +2,14 @@
 import { ref, onMounted, onUnmounted } from "vue";
 import Letter from "./Letter.vue";
 
-const emit = defineEmits(["win", "lose"]);
+const props = defineProps({
+    disabledLetters: {
+        type: Object,
+        default: () => ({}),
+    },
+});
+
+const emit = defineEmits(["win", "lose", "letterStatuses"]);
 
 const currentRow = ref(0);
 const currentCol = ref(0);
@@ -25,11 +32,18 @@ onUnmounted(() => {
     window.removeEventListener("keydown", handleKey);
 });
 
+function isLetterDisabled(letter) {
+    const upperLetter = letter.toUpperCase();
+    return props.disabledLetters[upperLetter] === "absent";
+}
+
 function handleKey(e) {
     if (gameOver.value) return;
 
     if (e.key.match(/^[a-zA-Z]$/)) {
-        addLetter(e.key);
+        if (!isLetterDisabled(e.key)) {
+            addLetter(e.key);
+        }
     }
 
     if (e.key === "Backspace") {
@@ -99,6 +113,20 @@ function checkWord() {
             cell.status = "absent";
         }
     });
+
+    // Émettre les statuts des lettres pour le clavier
+    // Priorité : correct > present > absent (pour gérer les lettres en double)
+    const statusPriority = { correct: 3, present: 2, absent: 1 };
+    const letterStatuses = {};
+    rows.value[currentRow.value].forEach((cell) => {
+        const letter = cell.value.toUpperCase();
+        const currentPriority = statusPriority[letterStatuses[letter]] || 0;
+        const newPriority = statusPriority[cell.status] || 0;
+        if (newPriority > currentPriority) {
+            letterStatuses[letter] = cell.status;
+        }
+    });
+    emit("letterStatuses", letterStatuses);
 
     // Vérifier victoire
     const isWin = rows.value[currentRow.value].every(
