@@ -1,6 +1,7 @@
 async function getWord() {
   const word = localStorage.getItem("wordle-word");
   if (word) {
+    console.log("Mot à deviner (depuis localStorage):", word);
     return word;
   } else {
     return await getNewWord();
@@ -14,6 +15,7 @@ async function getNewWord() {
   }
   const data = await response.json();
   const normalizedWord = removeAccents(data[0].name.toUpperCase());
+  console.log("Nouveau mot à deviner (depuis API):", normalizedWord);
   localStorage.setItem("wordle-word", normalizedWord);
   return normalizedWord;
 }
