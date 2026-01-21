@@ -30,7 +30,7 @@ function simulateKey(value: string) {
                 ? 'bg-gray-500 text-white opacity-50 cursor-not-allowed'
                 : '',
             !status || status === ''
-                ? 'bg-amber-300 hover:bg-amber-400 active:bg-amber-500'
+                ? 'bg-amber-300 hover:bg-amber-400 active:bg-amber-500 dark:bg-gray-600 dark:hover:bg-gray-500 dark:active:bg-gray-400 dark:text-white'
                 : '',
         ]"
     >
