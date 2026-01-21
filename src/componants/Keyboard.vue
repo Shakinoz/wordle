@@ -1,42 +1,20 @@
 <script setup lang="ts">
 import Key from "./Key.vue";
 
+const props = defineProps<{
+    letterStatuses: Record<string, string>;
+}>();
+
 const keys = [
-    [
-        { value: "A", status: "" },
-        { value: "Z", status: "" },
-        { value: "E", status: "" },
-        { value: "R", status: "" },
-        { value: "T", status: "" },
-        { value: "Y", status: "" },
-        { value: "U", status: "" },
-        { value: "I", status: "" },
-        { value: "O", status: "" },
-        { value: "P", status: "" },
-    ],
-    [
-        { value: "Q", status: "" },
-        { value: "S", status: "" },
-        { value: "D", status: "" },
-        { value: "F", status: "" },
-        { value: "G", status: "" },
-        { value: "H", status: "" },
-        { value: "J", status: "" },
-        { value: "K", status: "" },
-        { value: "L", status: "" },
-        { value: "M", status: "" },
-    ],
-    [
-        { value: "ENTER", status: "" },
-        { value: "W", status: "" },
-        { value: "X", status: "" },
-        { value: "C", status: "" },
-        { value: "V", status: "" },
-        { value: "B", status: "" },
-        { value: "N", status: "" },
-        { value: "DEL", status: "" },
-    ],
+    ["A", "Z", "E", "R", "T", "Y", "U", "I", "O", "P"],
+    ["Q", "S", "D", "F", "G", "H", "J", "K", "L", "M"],
+    ["ENTER", "W", "X", "C", "V", "B", "N", "DEL"],
 ];
+
+function getStatus(key: string): string {
+    const status = props.letterStatuses[key] || "";
+    return status === "absent" ? "absent" : "";
+}
 </script>
 
 <template>
@@ -48,9 +26,9 @@ const keys = [
         >
             <Key
                 v-for="key in row"
-                :key="key.value"
-                :value="key.value"
-                :status="key.status"
+                :key="key"
+                :value="key"
+                :status="getStatus(key)"
             />
         </div>
     </div>

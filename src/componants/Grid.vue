@@ -1,12 +1,21 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from "vue";
 import Letter from "./Letter.vue";
+import { isValidWord } from "../isValidWord.js";
 
-const emit = defineEmits(["win", "lose"]);
+const props = defineProps({
+    disabledLetters: {
+        type: Object,
+        default: () => ({}),
+    },
+});
+
+const emit = defineEmits(["win", "lose", "letterStatuses"]);
 
 const currentRow = ref(0);
 const currentCol = ref(0);
 const gameOver = ref(false);
+const shakeRow = ref(-1);
 
 const rows = ref([
     Array.from({ length: 5 }, () => ({ value: "", status: "empty" })),
@@ -25,11 +34,18 @@ onUnmounted(() => {
     window.removeEventListener("keydown", handleKey);
 });
 
+function isLetterDisabled(letter) {
+    const upperLetter = letter.toUpperCase();
+    return props.disabledLetters[upperLetter] === "absent";
+}
+
 function handleKey(e) {
     if (gameOver.value) return;
 
     if (e.key.match(/^[a-zA-Z]$/)) {
-        addLetter(e.key);
+        if (!isLetterDisabled(e.key)) {
+            addLetter(e.key);
+        }
     }
 
     if (e.key === "Backspace") {
@@ -57,6 +73,14 @@ function deleteLetter() {
 
 function submitWord() {
     if (currentCol.value === 5) {
+        const word = rows.value[currentRow.value].map((l) => l.value).join("");
+        if (!isValidWord(word)) {
+            shakeRow.value = currentRow.value;
+            setTimeout(() => {
+                shakeRow.value = -1;
+            }, 500);
+            return;
+        }
         checkWord();
     }
 }
@@ -100,6 +124,20 @@ function checkWord() {
         }
     });
 
+    // Émettre les statuts des lettres pour le clavier
+    // Priorité : correct > present > absent (pour gérer les lettres en double)
+    const statusPriority = { correct: 3, present: 2, absent: 1 };
+    const letterStatuses = {};
+    rows.value[currentRow.value].forEach((cell) => {
+        const letter = cell.value.toUpperCase();
+        const currentPriority = statusPriority[letterStatuses[letter]] || 0;
+        const newPriority = statusPriority[cell.status] || 0;
+        if (newPriority > currentPriority) {
+            letterStatuses[letter] = cell.status;
+        }
+    });
+    emit("letterStatuses", letterStatuses);
+
     // Vérifier victoire
     const isWin = rows.value[currentRow.value].every(
         (cell) => cell.status === "correct"
@@ -125,7 +163,7 @@ function checkWord() {
 
 <template>
     <div class="flex flex-col gap-2 items-center">
-        <div v-for="(row, r) in rows" :key="r" class="flex gap-2">
+        <div v-for="(row, r) in rows" :key="r" class="flex gap-2" :class="{ 'animate-shake': shakeRow === r }">
             <Letter
                 v-for="(cell, c) in row"
                 :key="c"
@@ -135,3 +173,17 @@ function checkWord() {
         </div>
     </div>
 </template>
+
+<style scoped>
+.animate-shake {
+    animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-8px); }
+    40% { transform: translateX(8px); }
+    60% { transform: translateX(-8px); }
+    80% { transform: translateX(8px); }
+}
+</style>
