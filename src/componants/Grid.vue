@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from "vue";
 import Letter from "./Letter.vue";
+import { isValidWord } from "../isValidWord.js";
 
 const props = defineProps({
     disabledLetters: {
@@ -14,6 +15,7 @@ const emit = defineEmits(["win", "lose", "letterStatuses"]);
 const currentRow = ref(0);
 const currentCol = ref(0);
 const gameOver = ref(false);
+const shakeRow = ref(-1);
 
 const rows = ref([
     Array.from({ length: 5 }, () => ({ value: "", status: "empty" })),
@@ -71,6 +73,14 @@ function deleteLetter() {
 
 function submitWord() {
     if (currentCol.value === 5) {
+        const word = rows.value[currentRow.value].map((l) => l.value).join("");
+        if (!isValidWord(word)) {
+            shakeRow.value = currentRow.value;
+            setTimeout(() => {
+                shakeRow.value = -1;
+            }, 500);
+            return;
+        }
         checkWord();
     }
 }
@@ -153,7 +163,7 @@ function checkWord() {
 
 <template>
     <div class="flex flex-col gap-2 items-center">
-        <div v-for="(row, r) in rows" :key="r" class="flex gap-2">
+        <div v-for="(row, r) in rows" :key="r" class="flex gap-2" :class="{ 'animate-shake': shakeRow === r }">
             <Letter
                 v-for="(cell, c) in row"
                 :key="c"
@@ -163,3 +173,17 @@ function checkWord() {
         </div>
     </div>
 </template>
+
+<style scoped>
+.animate-shake {
+    animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-8px); }
+    40% { transform: translateX(8px); }
+    60% { transform: translateX(-8px); }
+    80% { transform: translateX(8px); }
+}
+</style>
