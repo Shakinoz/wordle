@@ -8,9 +8,18 @@ const props = defineProps({
         type: Object,
         default: () => ({}),
     },
+    letterStatuses: {
+        type: Object,
+        default: () => ({}),
+    },
 });
 
-const emit = defineEmits(["win", "lose", "letterStatuses"]);
+const emit = defineEmits([
+    "win",
+    "lose",
+    "letterStatuses",
+    "restoreLetterStatuses",
+]);
 
 const currentRow = ref(0);
 const currentCol = ref(0);
@@ -26,7 +35,53 @@ const rows = ref([
     Array.from({ length: 5 }, () => ({ value: "", status: "empty" })),
 ]);
 
+const STORAGE_KEY = "wordle-progress";
+
+function saveProgress(letterStatuses) {
+    const secretWord = localStorage.getItem("wordle-word");
+    const progress = {
+        word: secretWord,
+        rows: rows.value,
+        currentRow: currentRow.value,
+        currentCol: currentCol.value,
+        letterStatuses: letterStatuses,
+        gameOver: gameOver.value,
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+}
+
+function loadProgress() {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (!saved) return false;
+
+    try {
+        const progress = JSON.parse(saved);
+        const currentWord = localStorage.getItem("wordle-word");
+
+        if (progress.word !== currentWord) {
+            localStorage.removeItem(STORAGE_KEY);
+            return false;
+        }
+
+        rows.value = progress.rows;
+        currentRow.value = progress.currentRow;
+        currentCol.value = progress.currentCol;
+        gameOver.value = progress.gameOver || false;
+
+        if (progress.letterStatuses) {
+            emit("restoreLetterStatuses", progress.letterStatuses);
+        }
+
+        return true;
+    } catch (e) {
+        console.error("Erreur lors du chargement de la progression:", e);
+        localStorage.removeItem(STORAGE_KEY);
+        return false;
+    }
+}
+
 onMounted(() => {
+    loadProgress();
     window.addEventListener("keydown", handleKey);
 });
 
@@ -94,7 +149,6 @@ function checkWord() {
     const secret = secretWord.toLowerCase().split("");
     const word = rows.value[currentRow.value].map((l) => l.value.toLowerCase());
 
-    // Lettres bien placées
     word.forEach((letter, i) => {
         if (letter === secret[i]) {
             rows.value[currentRow.value][i].status = "correct";
@@ -102,7 +156,6 @@ function checkWord() {
         }
     });
 
-    // Lettres présentes mais mal placées
     word.forEach((letter, i) => {
         if (
             rows.value[currentRow.value][i].status === "empty" &&
@@ -113,15 +166,12 @@ function checkWord() {
         }
     });
 
-    // Lettres absentes
     rows.value[currentRow.value].forEach((cell) => {
         if (cell.status === "empty") {
             cell.status = "absent";
         }
     });
 
-    // Émettre les statuts des lettres pour le clavier
-    // Priorité : correct > present > absent (pour gérer les lettres en double)
     const statusPriority = { correct: 3, present: 2, absent: 1 };
     const letterStatuses = {};
     rows.value[currentRow.value].forEach((cell) => {
@@ -134,7 +184,9 @@ function checkWord() {
     });
     emit("letterStatuses", letterStatuses);
 
-    // Vérifier victoire
+    const allLetterStatuses = { ...props.letterStatuses, ...letterStatuses };
+    saveProgress(allLetterStatuses);
+
     const isWin = rows.value[currentRow.value].every(
         (cell) => cell.status === "correct",
     );
@@ -145,11 +197,9 @@ function checkWord() {
         return;
     }
 
-    // Passage à la ligne suivante
     currentRow.value++;
     currentCol.value = 0;
 
-    // Vérifier défaite (6 essais épuisés)
     if (currentRow.value === 6) {
         gameOver.value = true;
         emit("lose");
