@@ -43,9 +43,7 @@ function handleKey(e) {
     if (gameOver.value) return;
 
     if (e.key.match(/^[a-zA-Z]$/)) {
-        if (!isLetterDisabled(e.key)) {
-            addLetter(e.key);
-        }
+        addLetter(e.key);
     }
 
     if (e.key === "Backspace") {
@@ -84,8 +82,6 @@ function submitWord() {
         checkWord();
     }
 }
-
-
 
 function checkWord() {
     const secretWord = localStorage.getItem("wordle-word");
@@ -140,7 +136,7 @@ function checkWord() {
 
     // Vérifier victoire
     const isWin = rows.value[currentRow.value].every(
-        (cell) => cell.status === "correct"
+        (cell) => cell.status === "correct",
     );
 
     if (isWin) {
@@ -163,7 +159,12 @@ function checkWord() {
 
 <template>
     <div class="flex flex-col gap-2 items-center">
-        <div v-for="(row, r) in rows" :key="r" class="flex gap-2" :class="{ 'animate-shake': shakeRow === r }">
+        <div
+            v-for="(row, r) in rows"
+            :key="r"
+            class="flex gap-2"
+            :class="{ 'animate-shake': shakeRow === r }"
+        >
             <Letter
                 v-for="(cell, c) in row"
                 :key="c"
@@ -180,10 +181,21 @@ function checkWord() {
 }
 
 @keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    20% { transform: translateX(-8px); }
-    40% { transform: translateX(8px); }
-    60% { transform: translateX(-8px); }
-    80% { transform: translateX(8px); }
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+    20% {
+        transform: translateX(-8px);
+    }
+    40% {
+        transform: translateX(8px);
+    }
+    60% {
+        transform: translateX(-8px);
+    }
+    80% {
+        transform: translateX(8px);
+    }
 }
 </style>
