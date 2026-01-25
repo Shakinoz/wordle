@@ -185,7 +185,6 @@ function checkWord() {
     emit("letterStatuses", letterStatuses);
 
     const allLetterStatuses = { ...props.letterStatuses, ...letterStatuses };
-    saveProgress(allLetterStatuses);
 
     const isWin = rows.value[currentRow.value].every(
         (cell) => cell.status === "correct",
@@ -193,6 +192,7 @@ function checkWord() {
 
     if (isWin) {
         gameOver.value = true;
+        saveProgress(allLetterStatuses);
         emit("win", currentRow.value + 1);
         return;
     }
@@ -202,8 +202,12 @@ function checkWord() {
 
     if (currentRow.value === 6) {
         gameOver.value = true;
+        saveProgress(allLetterStatuses);
         emit("lose");
+        return;
     }
+
+    saveProgress(allLetterStatuses);
 }
 </script>
 
