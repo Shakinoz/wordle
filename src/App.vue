@@ -41,8 +41,13 @@ function handleLose() {
     dialogOpen.value = true;
 }
 
+function handleRestoreLetterStatuses(savedStatuses) {
+    letterStatuses.value = savedStatuses;
+}
+
 async function handleReplay() {
     dialogOpen.value = false;
+    localStorage.removeItem("wordle-progress");
     word.value = await getNewWord();
     letterStatuses.value = {};
     gridKey.value++;
@@ -56,9 +61,11 @@ async function handleReplay() {
         <Navbar @replay="handleReplay" />
         <Grid
             :key="gridKey"
+            :letterStatuses="letterStatuses"
             @win="handleWin"
             @lose="handleLose"
             @letterStatuses="handleLetterStatuses"
+            @restoreLetterStatuses="handleRestoreLetterStatuses"
         />
         <Keyboard :letterStatuses="letterStatuses" />
 
