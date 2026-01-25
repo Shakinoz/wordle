@@ -50,11 +50,12 @@ async function handleReplay() {
 </script>
 
 <template>
-    <div class="min-h-screen flex flex-col items-center justify-between py-4 bg-white dark:bg-gray-900 transition-colors">
+    <div
+        class="min-h-screen flex flex-col items-center justify-between py-4 bg-white dark:bg-gray-900 transition-colors"
+    >
         <Navbar @replay="handleReplay" />
         <Grid
             :key="gridKey"
-            :disabledLetters="letterStatuses"
             @win="handleWin"
             @lose="handleLose"
             @letterStatuses="handleLetterStatuses"
